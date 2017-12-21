@@ -10,9 +10,20 @@ import android.os.Bundle;
 import android.provider.Settings;
 import android.support.v7.app.AppCompatActivity;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import com.google.gson.annotations.SerializedName;
 
 import fr.mds.mydogtrackerspy.R;
 import fr.mds.mydogtrackerspy.tools.LocationService;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
+import retrofit2.http.Field;
+import retrofit2.http.FormUrlEncoded;
+import retrofit2.http.POST;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -40,8 +51,24 @@ public class MainActivity extends AppCompatActivity {
 
         if(firstboot){
             getSharedPreferences("APP_PREF", this.MODE_PRIVATE).edit().putBoolean("firstboot",false).apply();
-                //TODO webserv call to result
-            tv_id.setText("");//<- put result
+
+            Retrofit retrofit = new Retrofit.Builder()
+                    .baseUrl(DogTrackerService.ENDPOINT)
+                    .addConverterFactory(GsonConverterFactory.create())
+                    .build();
+
+            DogTrackerService dogTrackerService = retrofit.create(DogTrackerService.class);
+            dogTrackerService.add_spy("test").enqueue(new Callback<BasicAnswer>() {
+                @Override
+                public void onResponse(Call<BasicAnswer> call, Response<BasicAnswer> response) {
+                    tv_id.setText(response.body().getMyAnswer().toString());
+                }
+                @Override
+                public void onFailure(Call<BasicAnswer> call, Throwable t) {
+                    Toast.makeText(MainActivity.this, "Something bad happened... sorry !!!", Toast.LENGTH_SHORT).show();
+                }
+            });
+
             getSharedPreferences("APP_PREF", this.MODE_PRIVATE).edit().putInt("spyid", 0).apply();
         } else {
             int id = getSharedPreferences("APP_PREF", this.MODE_PRIVATE).getInt("spyid", -1);
@@ -100,5 +127,24 @@ public class MainActivity extends AppCompatActivity {
                 );
         AlertDialog alert = builder.create();
         alert.show();
+    }
+}
+
+interface DogTrackerService {
+
+    String ENDPOINT = "http://dogtracker.epizy.com/";
+
+    @POST("ws.php?action=add_user")
+    @FormUrlEncoded
+    Call<BasicAnswer> add_spy(@Field("name") String name);
+}
+
+class BasicAnswer {
+
+    @SerializedName("response")
+    private String myAnswer;
+
+    public String getMyAnswer() {
+        return myAnswer;
     }
 }

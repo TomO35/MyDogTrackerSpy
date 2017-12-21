@@ -21,8 +21,8 @@ import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
-import retrofit2.http.Field;
 import retrofit2.http.FormUrlEncoded;
+import retrofit2.http.GET;
 import retrofit2.http.POST;
 
 public class MainActivity extends AppCompatActivity {
@@ -30,6 +30,7 @@ public class MainActivity extends AppCompatActivity {
     TextView tv_id;
     LocationService locationService;
     boolean firstboot;
+    String id = "0";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,10 +59,11 @@ public class MainActivity extends AppCompatActivity {
                     .build();
 
             DogTrackerService dogTrackerService = retrofit.create(DogTrackerService.class);
-            dogTrackerService.add_spy("test").enqueue(new Callback<BasicAnswer>() {
+            dogTrackerService.add_spy().enqueue(new Callback<BasicAnswer>() {
                 @Override
                 public void onResponse(Call<BasicAnswer> call, Response<BasicAnswer> response) {
-                    tv_id.setText(response.body().getMyAnswer().toString());
+                    id = response.body().getMyAnswer();
+                    tv_id.setText(id);
                 }
                 @Override
                 public void onFailure(Call<BasicAnswer> call, Throwable t) {
@@ -69,13 +71,14 @@ public class MainActivity extends AppCompatActivity {
                 }
             });
 
-            getSharedPreferences("APP_PREF", this.MODE_PRIVATE).edit().putInt("spyid", 0).apply();
+            getSharedPreferences("APP_PREF", this.MODE_PRIVATE).edit().putString("spyid", id).apply();
         } else {
-            int id = getSharedPreferences("APP_PREF", this.MODE_PRIVATE).getInt("spyid", -1);
-            if (id != -1) {
+            String theId = getSharedPreferences("APP_PREF", this.MODE_PRIVATE).getString("spyid", "fail");
+            if (theId != "fail") {
                 tv_id.setText(String.valueOf(id));
             } else {
                 tv_id.setText(R.string.error_id);
+                getSharedPreferences("APP_PREF", this.MODE_PRIVATE).edit().putBoolean("firstboot",true).apply();
             }
         }
         locationService = new LocationService();
@@ -134,9 +137,8 @@ interface DogTrackerService {
 
     String ENDPOINT = "http://dogtracker.epizy.com/";
 
-    @POST("ws.php?action=add_user")
-    @FormUrlEncoded
-    Call<BasicAnswer> add_spy(@Field("name") String name);
+    @GET("ws.php?action=add_user")
+    Call<BasicAnswer> add_spy();
 }
 
 class BasicAnswer {

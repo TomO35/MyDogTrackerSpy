@@ -1,0 +1,20 @@
+<resources>
+    <string name="app_name">MyDogTrackerSpy</string>
+
+    // Main Activiy
+    <string name="id_text">Your ID :</string>
+    <string name="info">Here is your ID, your manager is now able to track you.</string>
+    <string name="error_id">It seem that we can\'t find your id, please restart the app !</string>
+
+    // Network Error Dialog
+    <string name="network_needed">Network needed</string>
+    <string name="error_connectivity">This app needs to be connected to work as it is designed to, would you like to access settings ?</string>
+
+    // Localisation Error Dialog
+    <string name="location_needed">Location needed</string>
+    <string name="error_location">This app is made to locate you, location must be enabled to be able to work, would you like to access Location settings ?</string>
+
+    <string name="settings">Settings</string>
+    <string name="out">Exit</string>
+
+</resources>
